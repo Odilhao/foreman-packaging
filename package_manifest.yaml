@@ -888,6 +888,7 @@ foreman_proxy_other_plugin_packages:
     ansiblerole-foreman_scap_client: {}
     ansiblerole-insights-client: {}
     cjson: {}
+    python-cffi: {}
     python-daemon: {}
     python-docutils: {}
     python-jinja2: {}
