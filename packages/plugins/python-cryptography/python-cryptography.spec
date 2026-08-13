@@ -7,8 +7,8 @@
 %global pypi_name cryptography
 
 Name:           python-%{pypi_name}
-Version:        43.0.1
-Release:        3%{?dist}
+Version:        46.0.7
+Release:        1%{?dist}
 Summary:        cryptography is a package which provides cryptographic recipes and primitives to Python developers
 
 License:        BSD or Apache License, Version 2.0
@@ -16,10 +16,16 @@ URL:            https://github.com/pyca/cryptography
 Source0:        https://files.pythonhosted.org/packages/source/c/%{pypi_name}/%{pypi_name}-%{version}.tar.gz
 Source1:        https://downloads.theforeman.org/vendor/%{pypi_name}-%{version}-vendor.tar.gz
 
+# To create the vendor tarball:
+# curl -sL https://files.pythonhosted.org/packages/source/c/cryptography/cryptography-46.0.7.tar.gz -o /tmp/cryptography-46.0.7.tar.gz
+# cd /tmp && tar xzf cryptography-46.0.7.tar.gz && cd cryptography-46.0.7
+# cargo vendor-filterer --all-features --platform=x86_64-unknown-linux-gnu
+# tar czf ../cryptography-46.0.7-vendor.tar.gz vendor/
+
 BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-pip
 BuildConflicts: python%{python3_pkgversion}-cffi = 1.11.3
-BuildRequires:  python%{python3_pkgversion}-cffi >= 1.12
+BuildRequires:  python%{python3_pkgversion}-cffi >= 2.0.0
 BuildRequires:  python%{python3_pkgversion}-setuptools
 BuildRequires:  python%{python3_pkgversion}-setuptools-rust >= 1.7.0
 BuildRequires:  python%{python3_pkgversion}-wheel
@@ -38,7 +44,7 @@ BuildRequires:  gcc
 %package -n     python%{python3_pkgversion}-%{pypi_name}
 Summary:        %{summary}
 %{?python_provide:%python_provide python%{python3_pkgversion}-%{pypi_name}}
-Requires:       python%{python3_pkgversion}-cffi >= 1.12
+Requires:       python%{python3_pkgversion}-cffi >= 2.0.0
 
 
 %description -n python%{python3_pkgversion}-%{pypi_name}
@@ -48,6 +54,9 @@ Requires:       python%{python3_pkgversion}-cffi >= 1.12
 %prep
 set -ex
 %autosetup -n %{pypi_name}-%{version}
+# Fix PEP 639 license field (RHEL 9 setuptools does not support SPDX string format)
+sed -i 's/^license = "\(.*\)"/license = {text = "\1"}/' pyproject.toml
+sed -i '/^license-files/,/^\]/d' pyproject.toml
 %cargo_prep -V 1
 
 
@@ -63,9 +72,30 @@ set -ex
 %files -n python%{python3_pkgversion}-%{pypi_name}
 %{python3_sitearch}/%{pypi_name}
 %{python3_sitearch}/%{pypi_name}-%{version}.dist-info/
+%exclude %{python3_sitearch}/docs
+%exclude %{python3_sitearch}/tests
+%exclude %{python3_sitearch}/CHANGELOG.rst
+%exclude %{python3_sitearch}/CONTRIBUTING.rst
 
 
 %changelog
+* Wed Apr 08 2026 Foreman Packaging Automation <packaging@theforeman.org> - 46.0.7-1
+- Update to 46.0.7
+- Exclude docs/, tests/, CHANGELOG.rst and CONTRIBUTING.rst installed by upstream into site-packages
+
+* Wed Apr 01 2026 Foreman Packaging Automation <packaging@theforeman.org> - 46.0.6-1
+- Update to 46.0.6
+- Fix PEP 639 license field in pyproject.toml for RHEL 9 setuptools
+
+* Tue Jun 10 2025 Odilon Sousa <osousa@redhat.com> - 45.0.4-1
+- Release python-cryptography 45.0.4
+
+* Sun Jun 08 2025 Foreman Packaging Automation <packaging@theforeman.org> - 45.0.3-1
+- Update to 45.0.3
+
+* Sun Apr 27 2025 Foreman Packaging Automation <packaging@theforeman.org> - 44.0.2-1
+- Update to 44.0.2
+
 * Fri Jul 31 2026 Odilon Sousa <osousa@redhat.com> - 43.0.1-3
 - Rebuild for EL10
 
